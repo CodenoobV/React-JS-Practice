@@ -27,6 +27,15 @@ const TodoList = () => {
         alert ("Task added!");
     }
 
+    const handleDeleteTodo = (id) => {
+        // Filter out the task with the given ID
+        const newList = list.filter((todo) =>
+            todo.id !== id
+        );
+
+        setList(newList);
+    }
+
     return (
         <div>
             <h1>This is the To-do list</h1>
@@ -35,6 +44,16 @@ const TodoList = () => {
                     onChange = {handleInputChange} 
                     placeholder = "Enter a task"/>
                 <button className = "btn" onClick={() => handleAddTodo(inputTask)}>Add</button>
+            </div>
+            <div className = "Middle">
+                <ul>
+                    { list.map((todo) => (
+                        <li className = "Task" key = {todo.id}>
+                            {todo.todo}
+                            <button onClick = {() => handleDeleteTodo(todo.id)}>Delete</button>
+                        </li>
+                    ))}
+                </ul>
             </div>
         </div>
     );
