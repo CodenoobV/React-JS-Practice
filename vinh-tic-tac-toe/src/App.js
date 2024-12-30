@@ -10,17 +10,7 @@ function Square({ value, onSquareClick }) {
   );
 }
 
-// Define a function
-// Export so that this function can be used outside of this file
-// Default = the main function in your file
-function Board() {
-
-  // States of each square: empty, X, O
-  const [squares, setSquares] = useState(Array(9).fill(null));
-
-  // State of the game -> which player is next
-  const [xIsNext, setXIsNext] = useState(true);
-
+function Board({ squares, xIsNext, onPlay }) {
   function handleClick(index) {
 
     // If the square is already filled or there is a winner, return nothing -> do nothing
@@ -29,17 +19,16 @@ function Board() {
     // slice() to create a shallow copy of the squares array
     // Immutability is important and should be implemented if possible
     // Time travel feature will take advantage of this
-    const newSquares = squares.slice();
+    const nextSquares = squares.slice();
 
     if (xIsNext) {
-      newSquares[index] = 'X';
+      nextSquares[index] = 'X';
     } else {
-      newSquares[index] = 'O';
+      nextSquares[index] = 'O';
     }
 
     // Update the state of the squares and the next turn
-    setSquares(newSquares);
-    setXIsNext(!xIsNext);
+    onPlay(nextSquares);
   }
 
   const winner = calculateWinner(squares);
@@ -52,6 +41,7 @@ function Board() {
   } else {
     status = 'Next player: ' + (xIsNext ? 'X' : 'O');
   }
+
   return (
     <>
       <div className="status">
@@ -76,6 +66,58 @@ function Board() {
   );
 }
 
+export default function Game() {
+
+  // 2D array to store the history of the game
+  // Starts with an empty array [null null null null null null null null null]
+  const [history, setHistory] = useState([Array(9).fill(null)]);
+
+  // Current move, starts at 0
+  const [currentMove, setCurrentMove] = useState(0);
+
+  // Basically the state of the game, if even then X's turn, if odd then O's turn
+  const xIsNext = currentMove % 2 === 0;
+  const currentSquares = history[currentMove];
+
+  function handlePlay(nextSquares) {
+    // Including from index 0 to currentMove, as currentMove + 1 is excluded
+    const nextHistory = [...history.slice(0, currentMove + 1), nextSquares];
+
+    // Update the state of the history and the current move
+    setHistory(nextHistory);
+    setCurrentMove(nextHistory.length - 1);
+  }
+
+  function jumpTo(nextMove) {
+    setCurrentMove(nextMove);
+  }
+
+  const moves = history.map((squares, move) => {
+    let description;
+    if (move > 0) {
+      description = 'Go to move #' + move;
+    } else {
+      description = 'Return to Game Start'
+    }
+    return (
+      <li key={move}>
+        <button onClick={() => jumpTo(move)}>{description}</button>
+      </li>
+    );
+  });
+
+  return (
+    <div className="game">
+      <div className="game-board">
+        <Board xIsNext={xIsNext} squares={currentSquares} onPlay={handlePlay} />
+      </div>
+      <div className="game-info">
+          <ol>{moves}</ol>
+      </div>
+    </div>
+  );
+}
+
 function calculateWinner(squares) {
   const lines = [
     [0, 1, 2],
@@ -94,20 +136,4 @@ function calculateWinner(squares) {
     }
   }
   return null;
-}
-
-export default function Game() {
-  const [xIsNext, setXIsNext] = useState(true);
-  const [history, setHistory] = useState([Array(9).fill(null)]);
-  
-  return (
-    <div className="game">
-      <div className="game-board">
-        <Board />
-      </div>
-      <div className="game-info">
-          <ol>{}</ol>
-      </div>
-    </div>
-  );
 }
